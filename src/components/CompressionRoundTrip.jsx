@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { AlertTriangle, ArrowLeft, Download, LoaderCircle, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Download, LoaderCircle } from "lucide-react";
 
-export default function CompressionRoundTrip({ image, result, k, onKChange, onBack }) {
+export default function CompressionRoundTrip({ packageName, result, onBack }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -16,10 +16,10 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
     );
   }, [result]);
 
-  if (!image) {
+  if (!result.result && result.status === "idle") {
     return (
       <div className="lab-card flex min-h-[420px] items-center justify-center text-slate-400">
-        Carga una imagen para iniciar la compresión y descompresión.
+        Carga un archivo SVD para iniciar la descompresión.
       </div>
     );
   }
@@ -29,9 +29,7 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
       <div className="lab-card flex min-h-[420px] flex-col items-center justify-center gap-3 text-red-200">
         <AlertTriangle />
         <strong>{result.error}</strong>
-        <button className="button-secondary" onClick={() => onKChange(1)}>
-          <RotateCcw size={16} /> Reintentar
-        </button>
+        <button className="button-secondary" onClick={onBack}><ArrowLeft size={16} /> Volver al inicio</button>
       </div>
     );
   }
@@ -40,15 +38,13 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
     return (
       <div className="lab-card flex min-h-[420px] flex-col items-center justify-center gap-3 text-cyan-300">
         <LoaderCircle className="animate-spin" />
-        <strong>Preparando la descompresión...</strong>
-        <span className="text-sm text-slate-400">La matriz SVD se está reconstruyendo en segundo plano.</span>
+        <strong>Descomprimiendo la matriz SVD...</strong>
+        <span className="text-sm text-slate-400">Se están multiplicando U, Σ y Vᵀ para reconstruir los píxeles.</span>
       </div>
     );
   }
 
   const data = result.result;
-  const maxK = Math.min(data.rows, data.columns);
-  const usesFullRank = data.k === maxK;
   return (
     <div className="lab-card">
       <div className="section-heading">
@@ -59,44 +55,24 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
         <button className="button-secondary" onClick={onBack}><ArrowLeft size={16} /> Cambiar modo</button>
       </div>
       <p className="helper-text mb-5">
-        La descompresión reconstruye la imagen multiplicando las matrices SVD conservadas.
-        Los componentes descartados no pueden recuperarse.
+        Archivo procesado: <strong>{packageName || "matriz SVD"}</strong>. La imagen se reconstruye usando exclusivamente la representación guardada.
       </p>
       <div className="grid gap-5 md:grid-cols-2">
-        <figure>
-          <figcaption className="mb-2 text-sm text-slate-400">Imagen original</figcaption>
-          <img className="mx-auto max-h-72 rounded-xl object-contain" src={image} alt="Original" />
-        </figure>
         <figure>
           <figcaption className="mb-2 text-sm text-slate-400">Imagen descomprimida</figcaption>
           <canvas className="mx-auto max-h-72 max-w-full rounded-xl object-contain" ref={canvasRef} />
         </figure>
       </div>
-      <div className="mt-6">
-        <div className="mb-2 flex justify-between text-sm">
-          <label htmlFor="round-trip-k">Componentes guardados en la matriz SVD</label>
-          <strong className="text-cyan-300">{data.k}</strong>
-        </div>
-        <input id="round-trip-k" className="w-full accent-cyan-400" type="range" min="1" max={maxK} value={data.k} onChange={(event) => onKChange(Number(event.target.value))} />
-      </div>
-      <div className={`mt-5 rounded-xl border p-4 text-sm ${usesFullRank ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100" : "border-amber-400/30 bg-amber-400/10 text-amber-100"}`}>
-        <strong>{usesFullRank ? "Rango completo: reversión prácticamente exacta" : "Rango truncado: la reversión es aproximada"}</strong>
-        <p className="mt-1">
-          {usesFullRank
-            ? "Se conservaron todos los componentes disponibles. La representación puede recuperar la matriz original, aunque no implica reducción de almacenamiento."
-            : "La imagen descomprimida mantiene la información de los primeros componentes, pero no puede recuperar los detalles descartados."}
-        </p>
+      <div className="mt-5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+        La imagen corresponde a la reconstrucción de los componentes guardados. Si el archivo usa rango truncado, los detalles descartados no pueden recuperarse.
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
         <Metric label="Matriz" value={`${data.rows} × ${data.columns}`} />
-        <Metric label="MSE" value={data.mse.toFixed(2)} />
+        <Metric label="MSE" value="No disponible sin original" />
         <Metric label="Almacenamiento SVD" value={`${data.compressedSize.toLocaleString()} elem.`} />
         <Metric label="Reducción" value={`${data.compression.toFixed(2)}%`} />
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
-        <button className="button-secondary" onClick={() => onKChange(maxK)} disabled={usesFullRank}>
-          <RotateCcw size={17} /> Revertir con rango completo
-        </button>
         <button className="button-primary" onClick={() => canvasRef.current?.toBlob((blob) => {
           if (!blob) return;
           const link = document.createElement("a");

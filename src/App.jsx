@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpen, FlaskConical, History, RotateCcw } from "lucide-re
 import ImageUploader from "./components/ImageUploader";
 import SVDVisualizer from "./components/SVDVisualizer";
 import CompressionRoundTrip from "./components/CompressionRoundTrip";
+import SVDPackageUploader from "./components/SVDPackageUploader";
 import EducationalPanel from "./components/EducationalPanel";
 import HistoryPanel from "./components/HistoryPanel";
 import useSVD from "./hooks/useSVD";
@@ -12,13 +13,15 @@ const HISTORY_KEY = "svd-lab-history-v1";
 export default function App() {
   const [mode, setMode] = useState(null);
   const [image, setImage] = useState(null);
+  const [svdPackage, setSvdPackage] = useState(null);
+  const [packageName, setPackageName] = useState("");
   const [fileName, setFileName] = useState("");
   const [step, setStep] = useState(0);
   const [k, setK] = useState(1);
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; }
   });
-  const result = useSVD(image, k);
+  const result = useSVD(image, k, svdPackage);
   const savedKey = useRef("");
 
   useEffect(() => {
@@ -26,7 +29,7 @@ export default function App() {
   }, [history]);
 
   useEffect(() => {
-    if (result.status !== "ready" || !result.result) return;
+    if (mode !== "lab" || result.status !== "ready" || !result.result || !result.result.source) return;
     const data = result.result;
     const key = `${data.source}-${data.k}`;
     if (savedKey.current === key) return;
@@ -52,10 +55,19 @@ export default function App() {
 
   function handleImage(nextImage, nextName) {
     setImage(nextImage);
+    setSvdPackage(null);
+    setPackageName("");
     setFileName(nextName);
     setK(1);
     setStep(0);
     savedKey.current = "";
+  }
+
+  function handlePackage(nextPackage, nextName) {
+    setImage(null);
+    setSvdPackage(nextPackage);
+    setPackageName(nextName);
+    setK(Number.isInteger(nextPackage.k) ? nextPackage.k : 1);
   }
 
   function selectHistory(item) {
@@ -102,17 +114,19 @@ export default function App() {
             <h1 className="text-2xl font-bold">Laboratorio SVD</h1>
           </div>
           </div>
-          <button className="button-secondary" onClick={() => setMode(null)}><ArrowLeft size={16} /> Inicio</button>
+          <button className="button-secondary" onClick={() => { setMode(null); setImage(null); setSvdPackage(null); }}><ArrowLeft size={16} /> Inicio</button>
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <section className="hero-strip"><div><p className="eyebrow">Cuaderno de experimentación</p><h2>Comprende qué información conserva una imagen</h2><p>Ajusta el rango de la SVD y observa cómo cambia la reconstrucción.</p></div><div className="hero-stat"><History size={22} /><span>{history.length}<small>ejercicios guardados</small></span></div></section>
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <section className="space-y-5">
-          <ImageUploader onImageLoaded={handleImage} hasImage={Boolean(image)} />
+          {mode === "lab"
+            ? <ImageUploader onImageLoaded={handleImage} hasImage={Boolean(image)} />
+            : <SVDPackageUploader onPackageLoaded={handlePackage} hasPackage={Boolean(svdPackage)} />}
           {mode === "lab"
             ? <SVDVisualizer image={image} result={result} k={k} onKChange={setK} />
-            : <CompressionRoundTrip image={image} result={result} k={k} onKChange={setK} onBack={() => setMode(null)} />}
+            : <CompressionRoundTrip packageName={packageName} result={result} onBack={() => setMode(null)} />}
         </section>
         <aside className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-5 flex items-center gap-2 text-cyan-300">

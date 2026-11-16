@@ -44,9 +44,13 @@ Después, abre la URL mostrada por Vite. La aplicación:
 - Muestra dimensiones, almacenamiento SVD, reducción y MSE.
 - Incluye un panel didáctico de cuatro pasos con fórmulas LaTeX.
 - Permite descargar la reconstrucción como PNG.
+- Permite descargar la representación matemática como `imagen_comprimida.svd.json`.
+- Permite cargar ese archivo SVD en el modo de descompresión para reconstruir la imagen sin recalcularla desde el PNG.
 - Permite reconstruir con rango completo para comprobar la reversibilidad matemática de la matriz.
 
 La reconstrucción con un `k` truncado es aproximada: los componentes singulares descartados no pueden recuperarse. La reversión prácticamente exacta requiere conservar todos los componentes y, por tanto, normalmente no produce reducción de almacenamiento.
+
+El archivo `.svd.json` contiene las matrices `U`, los valores singulares y `Vᵀ` de cada canal RGB, además de las dimensiones y `k`. El PNG reconstruido no contiene esta información matemática y no puede utilizarse para recuperar los componentes descartados.
 
 Componentes principales:
 

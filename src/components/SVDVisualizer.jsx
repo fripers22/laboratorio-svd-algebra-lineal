@@ -15,7 +15,7 @@ export default function SVDVisualizer({ image, result, k, onKChange }) {
     );
   }, [result]);
   if (!image) return <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-500">La imagen reconstruida aparecerá aquí.</div>;
-  if (result.status === "loading") return <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 text-cyan-300"><LoaderCircle className="animate-spin" /><strong>Calculando SVD en segundo plano...</strong><span className="text-sm text-slate-400">La interfaz sigue disponible mientras se procesa la imagen.</span></div>;
+  if (result.status !== "ready" || !result.result) return <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 text-cyan-300"><LoaderCircle className="animate-spin" /><strong>Calculando SVD en segundo plano...</strong><span className="text-sm text-slate-400">La interfaz sigue disponible mientras se procesa la imagen.</span></div>;
   if (result.status === "error") return <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-red-400/30 bg-slate-900 text-red-200"><AlertTriangle /><strong>{result.error}</strong><button className="button-secondary" onClick={() => onKChange(1)}><RotateCcw size={16} /> Reintentar</button></div>;
   const data = result.result;
   const maxK = Math.min(data?.rows ?? 1, data?.columns ?? 1);
@@ -35,9 +35,21 @@ export default function SVDVisualizer({ image, result, k, onKChange }) {
         <Metric label="MSE" value={data.mse.toFixed(2)} />
         <Metric label="SVD" value={`${data.compressedSize.toLocaleString()} elem.`} />
       </div>}
-      <button className="button-primary mt-5" onClick={() => canvasRef.current?.toBlob((blob) => { if (blob) { const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "imagen_svd.png"; link.click(); URL.revokeObjectURL(link.href); } })}><Download size={18} /> Descargar reconstrucción</button>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <button className="button-primary" onClick={() => canvasRef.current?.toBlob((blob) => { if (blob) { const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "imagen_svd.png"; link.click(); URL.revokeObjectURL(link.href); } })}><Download size={18} /> Descargar reconstrucción</button>
+        <button className="button-secondary" onClick={() => downloadSVDPackage(data.svdPackage)}><Download size={18} /> Descargar matriz SVD</button>
+      </div>
     </div>
   );
+}
+
+function downloadSVDPackage(svdPackage) {
+  const blob = new Blob([JSON.stringify(svdPackage)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "imagen_comprimida.svd.json";
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function Metric({ label, value }) {

@@ -1,11 +1,13 @@
-import { processImage } from "../utils/svdProcessor";
+import { processImage, reconstructImage } from "../utils/svdProcessor";
 
 self.onmessage = ({ data }) => {
   try {
-    const result = processImage(
-      { width: data.width, height: data.height, data: new Uint8ClampedArray(data.pixels) },
-      data.k
-    );
+    const result = data.type === "decompress"
+      ? reconstructImage(data.svdPackage)
+      : processImage(
+        { width: data.width, height: data.height, data: new Uint8ClampedArray(data.pixels) },
+        data.k
+      );
     self.postMessage(
       { type: "complete", result: { ...result, pixels: result.pixels.buffer } },
       [result.pixels.buffer]
