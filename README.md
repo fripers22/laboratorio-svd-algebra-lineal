@@ -37,12 +37,16 @@ npm run dev
 
 Después, abre la URL mostrada por Vite. La aplicación:
 
-- Reduce imágenes a un máximo de 250 × 250 píxeles para proteger el rendimiento del navegador.
+- Presenta un selector inicial entre el laboratorio SVD y el flujo de compresión/descompresión.
+- Reduce imágenes a un máximo de 160 × 160 píxeles para proteger el rendimiento del navegador.
 - Procesa los canales RGB con SVD en el cliente.
 - Permite variar `k` en tiempo real.
 - Muestra dimensiones, almacenamiento SVD, reducción y MSE.
 - Incluye un panel didáctico de cuatro pasos con fórmulas LaTeX.
 - Permite descargar la reconstrucción como PNG.
+- Permite reconstruir con rango completo para comprobar la reversibilidad matemática de la matriz.
+
+La reconstrucción con un `k` truncado es aproximada: los componentes singulares descartados no pueden recuperarse. La reversión prácticamente exacta requiere conservar todos los componentes y, por tanto, normalmente no produce reducción de almacenamiento.
 
 Componentes principales:
 

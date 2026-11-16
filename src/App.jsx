@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, FlaskConical, History, Info } from "lucide-react";
+import { ArrowLeft, BookOpen, FlaskConical, History, RotateCcw } from "lucide-react";
 import ImageUploader from "./components/ImageUploader";
 import SVDVisualizer from "./components/SVDVisualizer";
+import CompressionRoundTrip from "./components/CompressionRoundTrip";
 import EducationalPanel from "./components/EducationalPanel";
 import HistoryPanel from "./components/HistoryPanel";
 import useSVD from "./hooks/useSVD";
@@ -9,6 +10,7 @@ import useSVD from "./hooks/useSVD";
 const HISTORY_KEY = "svd-lab-history-v1";
 
 export default function App() {
+  const [mode, setMode] = useState(null);
   const [image, setImage] = useState(null);
   const [fileName, setFileName] = useState("");
   const [step, setStep] = useState(0);
@@ -64,6 +66,31 @@ export default function App() {
     savedKey.current = `${item.source}-${item.k}`;
   }
 
+  if (!mode) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#07111f] px-6 text-slate-100">
+        <section className="w-full max-w-4xl text-center">
+          <div className="mx-auto mb-6 flex w-fit rounded-2xl bg-cyan-400/15 p-4 text-cyan-300"><FlaskConical size={42} /></div>
+          <p className="eyebrow">Álgebra Lineal · Laboratorio interactivo</p>
+          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Laboratorio SVD</h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-400">Explora la compresión de imágenes con matrices y comprueba qué sucede al reconstruirlas.</p>
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            <button className="choice-card" onClick={() => setMode("lab")}>
+              <BookOpen className="mx-auto text-cyan-300" size={32} />
+              <strong>Aplicar el laboratorio</strong>
+              <span>Ajusta k, observa la SVD, el MSE y el compromiso entre calidad y almacenamiento.</span>
+            </button>
+            <button className="choice-card" onClick={() => setMode("round-trip")}>
+              <RotateCcw className="mx-auto text-emerald-300" size={32} />
+              <strong>Comprimir y descomprimir</strong>
+              <span>Compara la imagen original con su reconstrucción y prueba la reversión con rango completo.</span>
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#07111f] text-slate-100">
       <header className="topbar">
@@ -75,7 +102,7 @@ export default function App() {
             <h1 className="text-2xl font-bold">Laboratorio SVD</h1>
           </div>
           </div>
-          <span className="hidden items-center gap-2 text-xs text-slate-400 md:flex"><Info size={15} /> Explora, ajusta y compara</span>
+          <button className="button-secondary" onClick={() => { setMode(null); setImage(null); }}><ArrowLeft size={16} /> Inicio</button>
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
@@ -83,7 +110,9 @@ export default function App() {
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <section className="space-y-5">
           <ImageUploader onImageLoaded={handleImage} hasImage={Boolean(image)} />
-          <SVDVisualizer image={image} result={result} k={k} onKChange={setK} />
+          {mode === "lab"
+            ? <SVDVisualizer image={image} result={result} k={k} onKChange={setK} />
+            : <CompressionRoundTrip image={image} result={result} k={k} onKChange={setK} onBack={() => { setMode(null); setImage(null); }} />}
         </section>
         <aside className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-5 flex items-center gap-2 text-cyan-300">
