@@ -24,16 +24,6 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
     );
   }
 
-  if (result.status === "loading") {
-    return (
-      <div className="lab-card flex min-h-[420px] flex-col items-center justify-center gap-3 text-cyan-300">
-        <LoaderCircle className="animate-spin" />
-        <strong>Comprimiendo y reconstruyendo la imagen...</strong>
-        <span className="text-sm text-slate-400">La matriz SVD se está reconstruyendo en segundo plano.</span>
-      </div>
-    );
-  }
-
   if (result.status === "error") {
     return (
       <div className="lab-card flex min-h-[420px] flex-col items-center justify-center gap-3 text-red-200">
@@ -46,6 +36,16 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
     );
   }
 
+  if (result.status !== "ready" || !result.result) {
+    return (
+      <div className="lab-card flex min-h-[420px] flex-col items-center justify-center gap-3 text-cyan-300">
+        <LoaderCircle className="animate-spin" />
+        <strong>Preparando la descompresión...</strong>
+        <span className="text-sm text-slate-400">La matriz SVD se está reconstruyendo en segundo plano.</span>
+      </div>
+    );
+  }
+
   const data = result.result;
   const maxK = Math.min(data.rows, data.columns);
   const usesFullRank = data.k === maxK;
@@ -54,7 +54,7 @@ export default function CompressionRoundTrip({ image, result, k, onKChange, onBa
       <div className="section-heading">
         <div>
           <p className="eyebrow">Reversión de la transformación</p>
-          <h2>Comprimir y descomprimir</h2>
+          <h2>Descompresión de la imagen</h2>
         </div>
         <button className="button-secondary" onClick={onBack}><ArrowLeft size={16} /> Cambiar modo</button>
       </div>

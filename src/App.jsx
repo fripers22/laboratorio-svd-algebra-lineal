@@ -77,13 +77,13 @@ export default function App() {
           <div className="mt-10 grid gap-5 md:grid-cols-2">
             <button className="choice-card" onClick={() => setMode("lab")}>
               <BookOpen className="mx-auto text-cyan-300" size={32} />
-              <strong>Aplicar el laboratorio</strong>
+              <strong>Comprimir imagen</strong>
               <span>Ajusta k, observa la SVD, el MSE y el compromiso entre calidad y almacenamiento.</span>
             </button>
             <button className="choice-card" onClick={() => setMode("round-trip")}>
               <RotateCcw className="mx-auto text-emerald-300" size={32} />
-              <strong>Comprimir y descomprimir</strong>
-              <span>Compara la imagen original con su reconstrucción y prueba la reversión con rango completo.</span>
+              <strong>Descomprimir imagen</strong>
+              <span>Reconstruye la imagen desde la transformación SVD y comprueba si la reversión es exacta o aproximada.</span>
             </button>
           </div>
         </section>
@@ -102,7 +102,7 @@ export default function App() {
             <h1 className="text-2xl font-bold">Laboratorio SVD</h1>
           </div>
           </div>
-          <button className="button-secondary" onClick={() => { setMode(null); setImage(null); }}><ArrowLeft size={16} /> Inicio</button>
+          <button className="button-secondary" onClick={() => setMode(null)}><ArrowLeft size={16} /> Inicio</button>
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
@@ -112,7 +112,7 @@ export default function App() {
           <ImageUploader onImageLoaded={handleImage} hasImage={Boolean(image)} />
           {mode === "lab"
             ? <SVDVisualizer image={image} result={result} k={k} onKChange={setK} />
-            : <CompressionRoundTrip image={image} result={result} k={k} onKChange={setK} onBack={() => { setMode(null); setImage(null); }} />}
+            : <CompressionRoundTrip image={image} result={result} k={k} onKChange={setK} onBack={() => setMode(null)} />}
         </section>
         <aside className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-5 flex items-center gap-2 text-cyan-300">
